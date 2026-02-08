@@ -237,14 +237,15 @@
     }
     .feature:hover{transform: translateY(-3px); border-color: rgba(255,255,255,.14);}
     .fIcon{
-      width:34px; height:34px; border-radius:12px;
-      background: rgba(47,107,255,.14);
-      border:1px solid rgba(47,107,255,.28);
-      display:grid; place-items:center;
-      color:#cfe0ff;
-      font-weight:900;
-      margin-bottom:12px;
-    }
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
     .feature h4{margin:0 0 8px; font-size:14.5px;}
     .feature p{margin:0; color:var(--muted); font-size:12.5px; line-height:1.6;}
 
@@ -255,6 +256,23 @@
       gap:14px;
       margin-top:18px;
     }
+    .featureHeader{
+  display: flex;
+  align-items: center;       /* vertical center */
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.featureHeader h4{
+  margin: 0;
+  line-height: 1;            /* fix vertical centering */
+}
+
+
+.featureHeader h4{
+  margin: 0;
+}
+
     .step{
       border-radius: var(--r2);
       background: rgba(255,255,255,.05);
@@ -291,15 +309,34 @@
       background: rgba(255,255,255,.05);
       border:1px solid rgba(255,255,255,.08);
     }
-    .check{
-      width:22px; height:22px; border-radius:8px;
-      display:grid; place-items:center;
-      background: rgba(47,107,255,.16);
-      border:1px solid rgba(47,107,255,.28);
-      color:#cfe0ff;
-      font-weight:900;
-      font-family:var(--mono);
-    }
+    .sig{
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(47,107,255,.95);
+  box-shadow:
+    0 0 0 4px rgba(47,107,255,.15),
+    0 0 18px rgba(47,107,255,.35);
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.sig::after{
+  content:"";
+  position:absolute;
+  inset:-6px;
+  border-radius:999px;
+  border:1px solid rgba(47,107,255,.35);
+  opacity:.55;
+  animation: pulse 1.8s ease-out infinite;
+}
+
+@keyframes pulse{
+  0%{ transform: scale(.6); opacity:0; }
+  30%{ opacity:.55; }
+  100%{ transform: scale(1.3); opacity:0; }
+}
+
     .pillRow p{
       margin:0;
       color:var(--text);
@@ -705,50 +742,56 @@
   </section>
 
   <!-- FEATURES -->
-  <section id="features" class="section">
-    <div class="container">
-      <h2 class="h2 reveal">Everything You Need to Control Invoice Risk</h2>
-      <p class="p reveal">In one platform.</p>
-
-      <div class="featureGrid">
-        <div class="feature reveal">
-          <div class="fIcon">🛡</div>
-          <h4>3-Way Invoice Matching</h4>
-          <p>Compares invoice line items against PO and GRN. Detects quantity mismatches, price variances, and missing items with clear comparisons.</p>
-        </div>
-
-        <div class="feature reveal">
-          <div class="fIcon">✓</div>
-          <h4>Intelligent Invoice Validation</h4>
-          <p>Checks line-item math, totals, taxes, pricing consistency, duplicate items, and missing/incorrect fields explained clearly.</p>
-        </div>
-
-        <div class="feature reveal">
-          <div class="fIcon">HS</div>
-          <h4>HS Code Memory & Compliance</h4>
-          <p>Remembers historical classifications and flags changes or suspicious codes to reduce customs delays and penalties.</p>
-        </div>
-
-        <div class="feature reveal">
-          <div class="fIcon">⚖</div>
-          <h4>Explainable Risk Scoring</h4>
-          <p>Decision signals like HOLD / REVIEW / APPROVE with estimated maximum overpayment risk so you know what to do next.</p>
-        </div>
-
-        <div class="feature reveal">
-          <div class="fIcon">🧾</div>
-          <h4>Create Invoices When Needed</h4>
-          <p>Structured invoice creation when suppliers send messy invoices, with built-in validation and clean exports.</p>
-        </div>
-
-        <div class="feature reveal">
-          <div class="fIcon">↗</div>
-          <h4>Exporter-Ready Trade Features</h4>
-          <p>Supports trade workflows: document consistency, shipment references, and clean reporting for audit-ready processes.</p>
-        </div>
-      </div>
+  <div class="featureGrid">
+  <div class="feature reveal">
+    <div class="featureHeader">
+      <div class="fIcon">🛡</div>
+      <h4>3-Way Invoice Matching</h4>
     </div>
-  </section>
+    <p>Compares invoice line items against PO and GRN. Detects quantity mismatches, price variances, and missing items with clear comparisons.</p>
+  </div>
+
+  <div class="feature reveal">
+    <div class="featureHeader">
+      <div class="fIcon">✓</div>
+      <h4>Intelligent Invoice Validation</h4>
+    </div>
+    <p>Checks line-item math, totals, taxes, pricing consistency, duplicate items, and missing/incorrect fields explained clearly.</p>
+  </div>
+
+  <div class="feature reveal">
+    <div class="featureHeader">
+      <div class="fIcon">HS</div>
+      <h4>HS Code Memory & Compliance</h4>
+    </div>
+    <p>Remembers historical classifications and flags changes or suspicious codes to reduce customs delays and penalties.</p>
+  </div>
+
+  <div class="feature reveal">
+    <div class="featureHeader">
+      <div class="fIcon">⚖</div>
+      <h4>Explainable Risk Scoring</h4>
+    </div>
+    <p>Decision signals like HOLD / REVIEW / APPROVE with estimated maximum overpayment risk so you know what to do next.</p>
+  </div>
+
+  <div class="feature reveal">
+    <div class="featureHeader">
+      <div class="fIcon">🧾</div>
+      <h4>Create Invoices When Needed</h4>
+    </div>
+    <p>Structured invoice creation when suppliers send messy invoices, with built-in validation and clean exports.</p>
+  </div>
+
+  <div class="feature reveal">
+    <div class="featureHeader">
+      <div class="fIcon">↗</div>
+      <h4>Exporter-Ready Trade Features</h4>
+    </div>
+    <p>Supports trade workflows: document consistency, shipment references, and clean reporting for audit-ready processes.</p>
+  </div>
+</div>
+
        
 
   <!-- HOW IT WORKS -->
@@ -787,12 +830,12 @@
       <h2 class="h2 reveal">Why Teams Choose InvoiceIQ</h2>
 
       <div class="list">
-        <div class="pillRow reveal"><span class="check">✓</span><p>Prevent overpayments before approval</p></div>
-        <div class="pillRow reveal"><span class="check">✓</span><p>Eliminate manual PO-GRN-invoice matching</p></div>
-        <div class="pillRow reveal"><span class="check">✓</span><p>Improve customs accuracy and compliance</p></div>
-        <div class="pillRow reveal"><span class="check">✓</span><p>Reduce invoice review time dramatically</p></div>
-        <div class="pillRow reveal"><span class="check">✓</span><p>Get explainable validation reports</p></div>
-        <div class="pillRow reveal"><span class="check">✓</span><p>Build long-term supplier intelligence</p></div>
+        <div class="pillRow reveal"><span class="sig"></span></span><p>Prevent overpayments before approval</p></div>
+        <div class="pillRow reveal"><span class="sig"></span></span><p>Eliminate manual PO-GRN-invoice matching</p></div>
+        <div class="pillRow reveal"><span class="sig"></span></span><p>Improve customs accuracy and compliance</p></div>
+        <div class="pillRow reveal"><span class="sig"></span></span><p>Reduce invoice review time dramatically</p></div>
+        <div class="pillRow reveal"><span class="sig"></span></span><p>Get explainable validation reports</p></div>
+        <div class="pillRow reveal"><span class="sig"></span></span><p>Build long-term supplier intelligence</p></div>
       </div>
 
       <div class="actionBox reveal" style="margin-top:18px;">

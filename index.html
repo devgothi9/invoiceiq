@@ -1,0 +1,984 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>InvoiceIQ — Approve Invoices With Confidence</title>
+  <meta name="description" content="InvoiceIQ validates invoices against PO & GRN to detect overpayment risk before approval." />
+
+  <style>
+    :root{
+      --bg:#000;
+      --panel:#0b0f14;
+      --card:#0e131a;
+      --stroke:rgba(255,255,255,.12);
+      --stroke2:rgba(255,255,255,.08);
+      --text:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.65);
+      --muted2:rgba(255,255,255,.45);
+      --blue:#2f6bff;
+      --blue2:#2b5cff;
+      --shadow: 0 18px 70px rgba(0,0,0,.75);
+      --r:16px;
+      --r2:22px;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      background:var(--bg);
+      color:var(--text);
+      overflow-x:hidden;
+    }
+
+    /* subtle top glow like your screenshot */
+    .glow{
+      position:fixed; inset:0; pointer-events:none; z-index:-1;
+      background:
+        radial-gradient(900px 520px at 50% -10%, rgba(47,107,255,.18), transparent 60%),
+        radial-gradient(900px 520px at 20% 20%, rgba(47,107,255,.08), transparent 60%),
+        radial-gradient(900px 520px at 80% 25%, rgba(47,107,255,.06), transparent 65%);
+    }
+
+    .container{width:min(1100px, 92vw); margin:0 auto;}
+
+    /* NAV */
+    header{
+      position:sticky; top:0; z-index:50;
+      background: rgba(0,0,0,.7);
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .nav{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:14px 0;
+      gap:14px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px; user-select:none;
+    }
+    .logo{
+      width:34px; height:34px;
+      border-radius:12px;
+      background: rgba(47,107,255,.16);
+      border:1px solid rgba(47,107,255,.35);
+      display:grid; place-items:center;
+      color:#cfe0ff;
+      font-weight:900;
+      font-family:var(--mono);
+      font-size:14px;
+    }
+    .brand b{font-weight:900; letter-spacing:.2px;}
+    .links{
+      display:flex; gap:6px; flex-wrap:wrap; align-items:center;
+    }
+    .links a{
+      text-decoration:none;
+      color:var(--muted);
+      font-size:14px;
+      padding:8px 10px;
+      border-radius:12px;
+      transition:.15s ease;
+    }
+    .links a:hover{background:rgba(255,255,255,.06); color:var(--text);}
+
+    /* BUTTONS */
+    .btn{
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color:var(--text);
+      padding:10px 14px;
+      border-radius:12px;
+      font-weight:800;
+      font-size:14px;
+      cursor:pointer;
+      transition:.15s ease;
+      display:inline-flex; gap:10px; align-items:center;
+      text-decoration:none;
+    }
+    .btn:hover{transform: translateY(-1px); background: rgba(255,255,255,.085);}
+    .btn.primary{
+      border-color: rgba(47,107,255,.55);
+      background: linear-gradient(180deg, var(--blue), var(--blue2));
+      box-shadow: 0 18px 55px rgba(47,107,255,.18);
+    }
+
+    /* HERO */
+    .hero{
+      padding:70px 0 46px;
+      text-align:center;
+    }
+    .heroIcon{
+      width:36px; height:36px;
+      border-radius:12px;
+      margin:0 auto 10px;
+      display:grid; place-items:center;
+      border:1px solid rgba(47,107,255,.35);
+      background: rgba(47,107,255,.12);
+      color:#cfe0ff;
+      font-weight:900;
+    }
+.heroLogo{
+  width: 400px;   /* adjust size if needed */
+  height: auto;
+  display: block;
+  margin: 0 auto 20px;
+}
+
+
+    .heroTitle{
+      margin:0;
+      font-size:56px;
+      line-height:1.05;
+      letter-spacing:-1px;
+    }
+    .heroTitle .blue{color:var(--blue);}
+    .heroSub{
+      margin:16px auto 22px;
+      color:var(--muted);
+      line-height:1.65;
+      max-width:72ch;
+      font-size:15.5px;
+    }
+    .chips{
+      display:flex; justify-content:center; gap:10px; flex-wrap:wrap;
+      margin-top:18px;
+    }
+    .chip{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 12px;
+      background: rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:999px;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .chip i{
+      width:16px; height:16px; border-radius:6px;
+      background: rgba(47,107,255,.22);
+      border:1px solid rgba(47,107,255,.35);
+      display:inline-block;
+    }
+
+    /* Sections */
+    .section{
+      padding:56px 0;
+      border-top:1px solid rgba(255,255,255,.06);
+    }
+    .h2{
+      text-align:center;
+      margin:0 0 8px;
+      font-size:34px;
+      letter-spacing:-.6px;
+    }
+    .p{
+      text-align:center;
+      margin:0 auto 26px;
+      color:var(--muted);
+      max-width:70ch;
+      line-height:1.6;
+      font-size:14.5px;
+    }
+
+    /* Cards grid */
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:14px;
+      align-items:stretch;
+    }
+    .card{
+      border-radius: var(--r);
+      background: rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.08);
+      box-shadow: 0 10px 40px rgba(0,0,0,.45);
+      padding:14px;
+      transition:.15s ease;
+    }
+    .card:hover{
+      transform: translateY(-3px);
+      border-color: rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+    }
+    .rowMini{
+      display:flex; gap:10px; align-items:center;
+      color:var(--muted);
+      font-size:13px;
+    }
+    .warnIcon{
+      width:22px; height:22px;
+      border-radius:8px;
+      display:grid; place-items:center;
+      background: rgba(255, 208, 84, .12);
+      border: 1px solid rgba(255, 208, 84, .22);
+      color:#ffd36a;
+      font-weight:900;
+      font-family:var(--mono);
+    }
+
+    /* Feature cards */
+    .featureGrid{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:14px;
+      margin-top:18px;
+    }
+    .feature{
+      padding:18px;
+      border-radius: var(--r2);
+      background: rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.08);
+      box-shadow: 0 10px 40px rgba(0,0,0,.45);
+      transition:.15s ease;
+    }
+    .feature:hover{transform: translateY(-3px); border-color: rgba(255,255,255,.14);}
+    .fIcon{
+      width:34px; height:34px; border-radius:12px;
+      background: rgba(47,107,255,.14);
+      border:1px solid rgba(47,107,255,.28);
+      display:grid; place-items:center;
+      color:#cfe0ff;
+      font-weight:900;
+      margin-bottom:12px;
+    }
+    .feature h4{margin:0 0 8px; font-size:14.5px;}
+    .feature p{margin:0; color:var(--muted); font-size:12.5px; line-height:1.6;}
+
+    /* Timeline */
+    .steps{
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap:14px;
+      margin-top:18px;
+    }
+    .step{
+      border-radius: var(--r2);
+      background: rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.08);
+      padding:16px;
+      text-align:center;
+      transition:.15s ease;
+    }
+    .step:hover{transform: translateY(-3px); border-color: rgba(255,255,255,.14);}
+    .num{
+      width:44px; height:44px; border-radius:14px;
+      margin:0 auto 10px;
+      display:grid; place-items:center;
+      background: rgba(47,107,255,.16);
+      border:1px solid rgba(47,107,255,.32);
+      color:#cfe0ff;
+      font-weight:900;
+      font-family:var(--mono);
+    }
+    .step b{display:block; font-size:13px; margin-bottom:6px;}
+    .step span{color:var(--muted); font-size:12px; line-height:1.5; display:block;}
+
+    /* Accordion list (Why choose) */
+    .list{
+      max-width:860px;
+      margin: 0 auto;
+      display:grid;
+      gap:12px;
+    }
+    .pillRow{
+      display:flex; align-items:center; gap:12px;
+      padding:14px 16px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.08);
+    }
+    .check{
+      width:22px; height:22px; border-radius:8px;
+      display:grid; place-items:center;
+      background: rgba(47,107,255,.16);
+      border:1px solid rgba(47,107,255,.28);
+      color:#cfe0ff;
+      font-weight:900;
+      font-family:var(--mono);
+    }
+    .pillRow p{
+      margin:0;
+      color:var(--text);
+      font-size:13px;
+    }
+
+    /* ACTION BOX */
+    .actionBox{
+      margin:22px auto 0;
+      max-width:720px;
+      border-radius: 16px;
+      padding:16px;
+      text-align:center;
+      background: rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.08);
+    }
+    .actionBox b{display:block; margin-bottom:4px;}
+    .actionBox .blue{color:var(--blue); font-weight:900;}
+
+    /* VIDEO (paste link) */
+    .videoWrap{
+      max-width:920px;
+      margin: 0 auto;
+      border-radius: 18px;
+      background: rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.08);
+      padding:16px;
+      box-shadow: var(--shadow);
+    }
+    .videoTop{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;
+      margin-bottom:12px;
+    }
+    .videoTop b{font-size:14px;}
+    .inputRow{
+      display:flex; gap:10px; flex-wrap:wrap; width:100%;
+    }
+    .in{
+      flex:1;
+      min-width:260px;
+      border-radius: 12px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.35);
+      color: var(--text);
+      padding:12px 12px;
+      outline:none;
+      font-size:14px;
+    }
+    .in:focus{border-color: rgba(47,107,255,.55); box-shadow: 0 0 0 4px rgba(47,107,255,.12);}
+    video{
+      width:100%;
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.10);
+      background:#000;
+    }
+    .hint{
+      margin-top:10px;
+      color:var(--muted2);
+      font-size:12px;
+      line-height:1.5;
+    }
+
+    /* FINAL BLUE STRIP like your screenshot */
+    .blueStrip{
+      background: var(--blue);
+      border-top:1px solid rgba(255,255,255,.08);
+      border-bottom:1px solid rgba(255,255,255,.08);
+      padding:54px 0;
+      text-align:center;
+    }
+    .blueStrip h3{
+      margin:0 0 10px;
+      font-size:40px;
+      letter-spacing:-.8px;
+      color:#fff;
+    }
+    .blueStrip p{
+      margin:0 auto 18px;
+      max-width:70ch;
+      color: rgba(255,255,255,.88);
+      line-height:1.6;
+    }
+    .blueStrip .btn{
+      background:#fff;
+      color:#0b1020;
+      border-color: rgba(255,255,255,.45);
+      font-weight:900;
+    }
+
+    /* CONTACT */
+    .contactGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:14px;
+      max-width:680px;
+      margin: 0 auto;
+    }
+    .contactCard{
+      border-radius: var(--r2);
+      background: rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.08);
+      padding:18px;
+      text-align:center;
+      transition:.15s ease;
+    }
+    .contactCard:hover{transform: translateY(-3px); border-color: rgba(255,255,255,.14);}
+    .cIcon{
+      width:36px; height:36px;
+      border-radius:12px;
+      margin:0 auto 10px;
+      display:grid; place-items:center;
+      background: rgba(47,107,255,.14);
+      border:1px solid rgba(47,107,255,.28);
+      color:#cfe0ff;
+      font-weight:900;
+      font-family:var(--mono);
+    }
+    .contactCard b{display:block; margin-bottom:6px;}
+    .contactCard a{color:var(--muted); text-decoration:none;}
+    .contactCard a:hover{color:#fff; text-decoration:underline;}
+
+    footer{
+      padding:26px 0 40px;
+      text-align:center;
+      color:var(--muted2);
+      border-top:1px solid rgba(255,255,255,.06);
+    }
+
+    /* REVEAL ANIM */
+    .reveal{opacity:0; transform: translateY(10px); transition: .7s ease;}
+    .reveal.on{opacity:1; transform: translateY(0);}
+
+    /* responsive */
+    @media (max-width:900px){
+      .grid{grid-template-columns:1fr;}
+      .featureGrid{grid-template-columns:1fr;}
+      .steps{grid-template-columns:1fr 1fr;}
+      .contactGrid{grid-template-columns:1fr;}
+      .heroTitle{font-size:44px;}
+    }
+    @media (max-width:520px){
+      .steps{grid-template-columns:1fr;}
+    }
+    /* RESULT CARD */
+.resultCard{
+  max-width: 920px;
+  margin: 0 auto;
+  border-radius: 18px;
+  background: rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.10);
+  padding:18px;
+  box-shadow: 0 10px 40px rgba(0,0,0,.55);
+}
+
+.resultTop{
+  display:flex;
+  justify-content:space-between;
+  gap:14px;
+  flex-wrap:wrap;
+  align-items:center;
+  margin-bottom:10px;
+}
+
+.k{
+  font-family: var(--mono);
+  font-size:12px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color: var(--muted2);
+  margin-bottom:6px;
+}
+
+.decision{
+  font-size:16px;
+  font-weight:900;
+}
+
+.hold{
+  color:#ffd36a;
+}
+
+.risk{
+  text-align:right;
+  font-size:12px;
+  color: var(--muted);
+}
+
+.risk b{
+  display:block;
+  font-size:20px;
+  color:#ff6b6b;
+  font-family: var(--mono);
+}
+
+.resultText{
+  margin:10px 0 12px;
+  color: var(--muted);
+  line-height:1.6;
+  font-size:14px;
+}
+
+.whyTitle{
+  font-weight:900;
+  margin-bottom:6px;
+}
+
+.whyList{
+  margin:0;
+  padding-left:18px;
+  color: var(--muted);
+  font-size:14px;
+  line-height:1.6;
+}
+
+.whyList li{
+  margin-bottom:6px;
+}
+/* BIG FEATURE PANELS (like your screenshot) */
+.bigPanels{
+  display:grid;
+  gap:28px;
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+.bigPanel{
+  border-radius: 18px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.10);
+  padding: 18px;
+  box-shadow: 0 10px 40px rgba(0,0,0,.55);
+}
+
+.bigHead{
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  margin-bottom: 10px;
+}
+
+.bigIcon{
+  width:34px;
+  height:34px;
+  border-radius: 12px;
+  display:grid;
+  place-items:center;
+  font-weight: 900;
+  font-family: var(--mono);
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  flex: 0 0 auto;
+}
+
+.bigIcon.purple{
+  background: rgba(168, 85, 247, .14);
+  border-color: rgba(168, 85, 247, .28);
+  color: #e9d5ff;
+}
+
+.bigIcon.green{
+  background: rgba(34, 197, 94, .14);
+  border-color: rgba(34, 197, 94, .28);
+  color: #bbf7d0;
+}
+
+.bigTitle{
+  margin: 0;
+  font-size: 24px;
+  letter-spacing: -.4px;
+}
+
+.bigDesc{
+  margin: 6px 0 12px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.bigGrid{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:12px;
+  margin-top: 10px;
+}
+
+.miniItem{
+  border-radius: 12px;
+  background: rgba(0,0,0,.35);
+  border:1px solid rgba(255,255,255,.10);
+  padding: 12px;
+  display:flex;
+  gap:10px;
+  align-items:center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.miniDot{
+  width:22px;
+  height:22px;
+  border-radius: 8px;
+  display:grid;
+  place-items:center;
+  font-weight:900;
+  font-family: var(--mono);
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  flex: 0 0 auto;
+}
+
+.miniDot.purple{
+  background: rgba(168, 85, 247, .14);
+  border-color: rgba(168, 85, 247, .28);
+  color: #e9d5ff;
+}
+
+.miniDot.green{
+  background: rgba(34, 197, 94, .14);
+  border-color: rgba(34, 197, 94, .28);
+  color: #bbf7d0;
+}
+
+.bigFooterLine{
+  margin-top: 12px;
+  font-size: 12.5px;
+  color: var(--muted2);
+  font-style: italic;
+}
+
+.bigFooterLine.purple{ color: rgba(168, 85, 247, .85); }
+.bigFooterLine.green{ color: rgba(34, 197, 94, .85); }
+
+@media (max-width: 900px){
+  .bigGrid{ grid-template-columns: 1fr; }
+}
+
+  </style>
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6W4LG73RC6"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6W4LG73RC6');
+</script>
+
+</head>
+
+<body>
+  <div class="glow"></div>
+
+  
+
+  <!-- HERO -->
+  <section class="hero container">
+    <img src="./logo.png" alt="InvoiceIQ Logo" class="heroLogo">
+
+   
+    <h1 class="heroTitle reveal">
+      <span class="blue">Approve Invoices</span> With<br/>Confidence.
+    </h1>
+    <p class="heroSub reveal">
+      InvoiceIQ helps importers, exporters, and finance teams catch invoice errors and overcharges before payment so profits don't quietly leak out.
+    </p>
+    <div class="reveal">
+      <a class="btn primary"
+   href="https://calendar.app.google/bpZCtzmh6JSQ3FPy7"
+   target="_blank"
+   rel="noopener noreferrer">
+  Book a Demo
+</a>
+
+    </div>
+
+    <div class="chips reveal" style="margin-top:22px;">
+      <span class="chip"><i></i> Built for importers, exporters, and AP teams</span>
+      <span class="chip"><i></i> Designed for real trade workflows</span>
+      <span class="chip"><i></i> Catches risk before payment</span>
+    </div>
+  </section>
+
+  <!-- PROBLEM -->
+  <section id="problem" class="section">
+    <div class="container">
+      <h2 class="h2 reveal">The Problem</h2>
+      <p class="p reveal">
+        Invoice errors are more expensive than most businesses realize. Small mistakes happen on almost every invoice and when they're missed, money is lost silently.
+      </p>
+
+      <div class="grid">
+        <div class="card reveal"><div class="rowMini"> 🤯 Overcharged prices</div></div>
+        <div class="card reveal"><div class="rowMini"> 😕 Extra quantities billed</div></div>
+        <div class="card reveal"><div class="rowMini"> 😰 PO and GRN mismatches</div></div>
+        <div class="card reveal"><div class="rowMini"> 😢 Duplicate line items</div></div>
+        <div class="card reveal"><div class="rowMini"> 😡 Wrong tax or HS codes</div></div>
+        <div class="card reveal"><div class="rowMini"> 😩 Most teams find this after paying</div></div>
+      </div>
+
+      <div class="actionBox reveal">
+        <b>Most tools just store invoices.</b>
+        <span class="blue">InvoiceIQ actually validates them.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="features" class="section">
+    <div class="container">
+      <h2 class="h2 reveal">Everything You Need to Control Invoice Risk</h2>
+      <p class="p reveal">In one platform.</p>
+
+      <div class="featureGrid">
+        <div class="feature reveal">
+          <div class="fIcon">🛡</div>
+          <h4>3-Way Invoice Matching</h4>
+          <p>Compares invoice line items against PO and GRN. Detects quantity mismatches, price variances, and missing items with clear comparisons.</p>
+        </div>
+
+        <div class="feature reveal">
+          <div class="fIcon">✓</div>
+          <h4>Intelligent Invoice Validation</h4>
+          <p>Checks line-item math, totals, taxes, pricing consistency, duplicate items, and missing/incorrect fields explained clearly.</p>
+        </div>
+
+        <div class="feature reveal">
+          <div class="fIcon">HS</div>
+          <h4>HS Code Memory & Compliance</h4>
+          <p>Remembers historical classifications and flags changes or suspicious codes to reduce customs delays and penalties.</p>
+        </div>
+
+        <div class="feature reveal">
+          <div class="fIcon">⚖</div>
+          <h4>Explainable Risk Scoring</h4>
+          <p>Decision signals like HOLD / REVIEW / APPROVE with estimated maximum overpayment risk so you know what to do next.</p>
+        </div>
+
+        <div class="feature reveal">
+          <div class="fIcon">🧾</div>
+          <h4>Create Invoices When Needed</h4>
+          <p>Structured invoice creation when suppliers send messy invoices, with built-in validation and clean exports.</p>
+        </div>
+
+        <div class="feature reveal">
+          <div class="fIcon">↗</div>
+          <h4>Exporter-Ready Trade Features</h4>
+          <p>Supports trade workflows: document consistency, shipment references, and clean reporting for audit-ready processes.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+       
+
+  <!-- HOW IT WORKS -->
+  <section id="how" class="section">
+    <div class="container">
+      <h2 class="h2 reveal">From Invoice Receipt to Decision in Minutes</h2>
+
+      <div class="steps">
+        <div class="step reveal">
+          <div class="num">01</div>
+          <b>Upload or receive invoice</b>
+          <span>along with PO and GRN</span>
+        </div>
+        <div class="step reveal">
+          <div class="num">02</div>
+          <b>Automatic validation</b>
+          <span>pricing, quantity, HS codes, compliance</span>
+        </div>
+        <div class="step reveal">
+          <div class="num">03</div>
+          <b>Instant decision</b>
+          <span>clear explanations & risk exposure</span>
+        </div>
+        <div class="step reveal">
+          <div class="num">04</div>
+          <b>Download reports</b>
+          <span>and track invoice history over time</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY CHOOSE -->
+  <section class="section">
+    <div class="container">
+      <h2 class="h2 reveal">Why Teams Choose InvoiceIQ</h2>
+
+      <div class="list">
+        <div class="pillRow reveal"><span class="check">✓</span><p>Prevent overpayments before approval</p></div>
+        <div class="pillRow reveal"><span class="check">✓</span><p>Eliminate manual PO-GRN-invoice matching</p></div>
+        <div class="pillRow reveal"><span class="check">✓</span><p>Improve customs accuracy and compliance</p></div>
+        <div class="pillRow reveal"><span class="check">✓</span><p>Reduce invoice review time dramatically</p></div>
+        <div class="pillRow reveal"><span class="check">✓</span><p>Get explainable validation reports</p></div>
+        <div class="pillRow reveal"><span class="check">✓</span><p>Build long-term supplier intelligence</p></div>
+      </div>
+
+      <div class="actionBox reveal" style="margin-top:18px;">
+        <b>Traditional tools create invoices.</b>
+        <span class="blue">InvoiceIQ protects your money.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- VIDEO SECTION (LINK PASTE) -->
+<section id="action" class="section">
+  <div class="container">
+    <h2 class="h2 reveal">See InvoiceIQ In Action</h2>
+    <p class="p reveal">Clear findings. Clear action.</p>
+
+    <div class="videoWrap reveal">
+      <video controls playsinline preload="metadata">
+        <!-- Put your video file in the same folder and name it demo.mp4 -->
+        <source src="./demo.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+      <div style="height:20px"></div>
+
+<div class="resultCard reveal">
+  <div class="resultTop">
+    <div>
+      <div class="k">What InvoiceIQ is telling you</div>
+      <div class="decision">
+        Decision: <span class="hold">HOLD</span>
+      </div>
+    </div>
+    <div class="risk">
+      Max Overpayment Risk<br>
+      <b>$150.00</b>
+    </div>
+  </div>
+
+  <p class="resultText">
+    This invoice should not be approved yet. InvoiceIQ found issues that could cause
+    <b>$150 in overpayment</b> if this invoice is paid as it is.
+  </p>
+
+  <div class="whyTitle">Why it was stopped</div>
+  <ul class="whyList">
+    <li>Important invoice details are missing</li>
+    <li>Item price on the invoice is higher than the agreed PO price</li>
+    <li>Invoice is charging for items that were never received (GRN mismatch)</li>
+  </ul>
+</div>
+
+    </div>
+  </div>
+  <div style="height:40px"></div>
+
+<h2 class="h2 reveal" style="text-align:center;">
+  Powerful Features That Go Beyond Validation
+</h2>
+<p class="p reveal">
+  
+</p>
+
+<div class="bigPanels">
+
+  <!-- Panel 1 -->
+  <div class="bigPanel reveal">
+    <div class="bigHead">
+      <div class="bigIcon purple">⛁</div>
+      <div>
+        <h3 class="bigTitle">My Invoices and Historical Tracking</h3>
+        <div class="bigDesc">Every validated invoice is securely stored.</div>
+      </div>
+    </div>
+
+    <div class="bigGrid">
+      <div class="miniItem"><span class="miniDot purple">⌕</span> Search invoices by date, supplier, or amount</div>
+      <div class="miniItem"><span class="miniDot purple">◉</span> Review past validation results</div>
+      <div class="miniItem"><span class="miniDot purple">△</span> Track repeated supplier issues</div>
+      <div class="miniItem"><span class="miniDot purple">↗</span> Compare risk trends over time</div>
+    </div>
+
+    <div class="bigFooterLine purple">
+      Your invoice history becomes a source of insight, not just storage.
+    </div>
+  </div>
+
+  <!-- Panel 2 -->
+  <div class="bigPanel reveal">
+    <div class="bigHead">
+      <div class="bigIcon green">▮▯</div>
+      <div>
+        <h3 class="bigTitle">Analytics That Help You Grow</h3>
+        <div class="bigDesc">InvoiceIQ turns invoice data into business intelligence.</div>
+      </div>
+    </div>
+
+    <div class="bigGrid">
+      <div class="miniItem"><span class="miniDot green">✓</span> Most frequently purchased products</div>
+      <div class="miniItem"><span class="miniDot green">✓</span> Supplier pricing trends</div>
+      <div class="miniItem"><span class="miniDot green">✓</span> Average reorder cycles</div>
+      <div class="miniItem"><span class="miniDot green">✓</span> Overpayment risk by supplier</div>
+      <div class="miniItem" style="grid-column:1 / -1;">
+        <span class="miniDot green">✓</span> Growth and spend patterns over time
+      </div>
+    </div>
+
+    <div class="bigFooterLine green">
+      Clear visuals. Clear decisions. No accounting guesswork.
+    </div>
+  </div>
+
+</div>
+
+</section>
+
+
+  <!-- BLUE STRIP CTA -->
+  <section class="blueStrip">
+    <div class="container">
+      <h3 class="reveal">Invoices Should Never Be a Risk</h3>
+      <p class="reveal">
+        InvoiceIQ helps modern trade teams approve invoices with clarity, control, and confidence.
+      </p>
+      <div class="reveal">
+        <a class="btn primary"
+   href="https://calendar.app.google/bpZCtzmh6JSQ3FPy7"
+   target="_blank"
+   rel="noopener noreferrer">
+  Book a Demo
+</a>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact" class="section">
+  <div class="container">
+    <h2 class="h2 reveal">Contact</h2>
+
+   <div class="contactGrid" style="display:flex; justify-content:center;">
+
+      <div class="contactCard reveal">
+        <div class="cIcon">@</div>
+        <b>Email</b>
+        <a href="mailto:devgothi09@gmail.com">devgothi09@gmail.com</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+  <footer>
+   <footer class="footer">
+  <img src="./logo.png" alt="InvoiceIQ Logo" style="width:120px; margin:0 auto; display:block;">
+
+
+      </div>
+      <div style="margin-top:8px;">Invoice intelligence for modern trade</div>
+      <div style="margin-top:6px;">© 2026 InvoiceIQ. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <script>
+    // Scroll reveal like modern landing pages
+    const els = [...document.querySelectorAll(".reveal")];
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){ e.target.classList.add("on"); io.unobserve(e.target); }
+      });
+    }, {threshold: 0.12});
+    els.forEach(el=>io.observe(el));
+
+    // Video URL loader
+    const btn = document.getElementById("loadVideo");
+    const input = document.getElementById("videoUrl");
+    const source = document.getElementById("videoSource");
+    const video = document.getElementById("demoVideo");
+
+    btn.addEventListener("click", ()=>{
+      const url = input.value.trim();
+      if(!url) return;
+
+      // Replace source + reload
+      source.src = url;
+      video.load();
+      video.play().catch(()=>{});
+    });
+  </script>
+</body>
+</html>
